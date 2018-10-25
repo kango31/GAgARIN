@@ -28,7 +28,7 @@ def standard_poker():
 
 class TestDeck(object):
     def test_add(self, empty_deck):
-    	empty_deck.add(Card(facevalue="Ace", colour="Spades"), position="random")
+        empty_deck.add(Card(facevalue="Ace", colour="Spades"), position="random")
         assert len(empty_deck) == 1
         empty_deck.add(Card(facevalue="Ace", colour="Hearts"), position="top")
         assert len(empty_deck) == 2
@@ -56,17 +56,17 @@ class TestDeck(object):
         assert len(standard_poker) == 0
 
     def test_search(self, standard_poker):
-        cards = standard_poker.search(lambda x: x.facevalue == "A")
+        cards = standard_poker.search(lambda x: x.get("facevalue") == "A")
         assert len(cards) == 4
         for c in cards:
-            assert c.facevalue == "A"
-        cards = standard_poker.search(lambda x: x.colour == u"\u2665")
+            assert c.get("facevalue") == "A"
+        cards = standard_poker.search(lambda x: x.get("colour") == u"\u2665")
         assert len(cards) == 12
         for c in cards:
-            assert c.colour == u"\u2665"
-        cards = standard_poker.search(lambda x: x.colour == u"\u2663", number=4)
+            assert c.get("colour") == u"\u2665"
+        cards = standard_poker.search(lambda x: x.get("colour") == u"\u2663", number=4)
         assert len(cards) == 4
-        cards = standard_poker.search(lambda x: x.colour == u"\u2663", number=30)
+        cards = standard_poker.search(lambda x: x.get("colour") == u"\u2663", number=30)
         assert len(cards) == 8
 
     def test_deal(self, standard_poker):

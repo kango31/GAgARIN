@@ -13,21 +13,18 @@ def die6():
 
 class TestDie(object):
     def test__gettattr__01(self, die6):
-        assert die6.color == "Blue"
+        assert die6.get("color") == "Blue"
 
     def test_number_of_sides(self, die6):
         assert die6.number_of_sides() == 6
 
     def test_roll(self, die6):
-        for i in xrange(100):
-            value = die6.roll().value
+        for i in range(100):
+            value = die6.roll().get("value")
             assert (1 <= value <= 6)
 
     def test_visible_face(self, die6):
-        assert die6.get_visible_face().value == 1
-        value = die6.roll().value
-        assert value == die6.get_visible_face().value
-        die6.set_visible_face(lambda x: x.value == 3).get_visible_face().value == 3
-
-
-
+        assert die6.get_visible_face().get("value") == 1
+        value = die6.roll().get("value")
+        assert value == die6.get_visible_face().get("value")
+        die6.set_visible_face(lambda x: x.get("value") == 3).get_visible_face().get("value") == 3

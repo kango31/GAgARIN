@@ -21,16 +21,12 @@ class TestCard(object):
     	assert not card01.is_face_up()
     	assert card01.is_face_down()
 
-    def test__getattr__(self, card01):
-    	assert card01.facevalue == "Ace"
-    	assert card01.color == "Spades"
+    def test_get(self, card01):
+    	assert card01.get("facevalue") == "Ace"
+    	assert card01.get("color") == "Spades"
     	card01.set_face_up(False)
-    	assert card01.facevalue is None
-    	assert card01.color is None
-
-    def test__setattr__(self, card01):
-    	with pytest.raises(AttributeError):
-    		card01.facevalue = "King"
+    	assert card01.get("facevalue") is None
+    	assert card01.get("color") is None
 
     def test_chaining(self, card01):
     	card01.set_face_up(True).rotate(90).untap().flip()

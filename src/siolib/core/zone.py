@@ -41,37 +41,40 @@ class Component(object):
 		else:
 			return None
 
-	def __getattr__(self, name):
-		"""
-		Access the properties of the card as if they were attributes.
+	# def __getattr__(self, name):
+	# 	"""
+	# 	Access the properties of the card as if they were attributes.
 
-		If component is not visible, this method returns None.
+	# 	If component is not visible, this method returns None.
 
-		This method is only called if no attribute with given name has been found in self.__dict__.
-		The first check is made with __getattribute__ special method.
+	# 	This method is only called if no attribute with given name has been found in self.__dict__.
+	# 	The first check is made with __getattribute__ special method.
 
-		:param name: property name to be retrieved
-		:type name: str
-		:rtype: object		
-		"""
-		if not self.is_visible():
-			return None
-		else:
-			return self.__dict__["_properties"][name]
+	# 	:param name: property name to be retrieved
+	# 	:type name: str
+	# 	:rtype: object		
+	# 	"""
+	# 	if not self.is_visible():
+	# 		return None
+	# 	else:
+	# 		try:
+	# 			return self.__dict__["_properties"][name]
+	# 		except KeyError:
+	# 			raise AttributeError("Object has no {} property.")
 
-	def __setattr__(self, name, value):
-		"""
-		Prevent the modification of component properties.
+	# def __setattr__(self, name, value):
+	# 	"""
+	# 	Prevent the modification of component properties.
 
-		:param name: name of attribute to be modified
-		:type name: str
-		:param value: value of attribute
-		:type value: Python object
-		"""
-		if name in self._properties:
-			raise AttributeError("You cannot set the value of '{}'".format(name))
-		else:
-			super(Component, self).__setattr__(name, value)
+	# 	:param name: name of attribute to be modified
+	# 	:type name: str
+	# 	:param value: value of attribute
+	# 	:type value: Python object
+	# 	"""
+	# 	if name in self._properties:
+	# 		raise AttributeError("You cannot set the value of '{}'".format(name))
+	# 	else:
+	# 		super(Component, self).__setattr__(name, value)
 
 	def is_leaf(self):
 		"""
@@ -155,14 +158,23 @@ class Zone(Component):
 		:rtype: Component
 		"""
 		#Find if it's a self match
-		if predicate(self):
-			return self
+		try:
+			if predicate(self):
+				return self
+		except:
+			pass
 		#Then ask to children to find
 		for c in self._children:
 			if not c.is_leaf():
 				result = c.search_component(predicate)
 				if result is not None:
 					return result
+			else:
+				try:
+					if predicate(c):
+						return c
+				except:
+					pass
 		#Nothing has been found
 		return None
 
@@ -182,11 +194,20 @@ class Zone(Component):
 		if predicate is None:
 			predicate = lambda x: True
 		#Transform self
-		if predicate(self):
-			transform(self)
+		try:
+			if predicate(self):
+				transform(self)
+		except:
+			pass
 		#Transform children
 		for c in self._children:
 			if not c.is_leaf():
 				c.apply(transform, predicate)
+			else:
+				try:
+					if predicate(c):
+						transform(c)
+				except:
+					pass
 		#Return
 		return self

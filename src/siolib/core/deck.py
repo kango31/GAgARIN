@@ -13,14 +13,14 @@ class Deck(Component):
 	"""
 	Deck class: collection of cards.
 	"""
-	def __init__(self, face_up=False):
+	def __init__(self, face_up=False, **properties):
 		"""
 		Constructor.
 
 		:param face_up: by default, all cards in this deck are considered as specified
 		:type face_up: bool
 		"""
-		super(Deck, self).__init__()
+		super(Deck, self).__init__(**properties)
 		self._face_up = face_up
 		self._cards = [ ]
 
@@ -60,7 +60,7 @@ class Deck(Component):
 		Shuffle deck.
 
 		:return: current deck
-		:rtype: Deck		
+		:rtype: Deck
 		"""
 		random.shuffle(self._cards)
 		return self
@@ -128,7 +128,7 @@ class Deck(Component):
 		:rtype: list of list
 		"""
 		out = [ ]
-		for p in xrange(piles):
+		for p in range(piles):
 			out.append([])
 		i = 0
 		stop = False

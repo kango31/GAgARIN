@@ -21,24 +21,24 @@ def token2():
 
 class TestToken(object):
     def test__gettattr__01(self, token0):
-        assert token0.color == "yellow"
+        assert token0.get("color") == "yellow"
 
     def test__gettattr__02(self, token1):
-        assert token1.value is None
-        assert token1.set_face_up(True).value == "+3"
+        assert token1.get("value") is None
+        assert token1.set_face_up(True).get("value") == "+3"
 
     def test_flip_01(self, token1):
-        assert token1.value is None
-        assert token1.flip().value == "+3"
-        assert token1.set_face_up(False).value is None
-        assert token1.set_face_down(False).value == "+3"
+        assert token1.get("value") is None
+        assert token1.flip().get("value") == "+3"
+        assert token1.set_face_up(False).get("value") is None
+        assert token1.set_face_down(False).get("value") == "+3"
 
     def test_flip_02(self, token2):
-        assert token2.get_visible_face().symbol == "Research"
-        assert token2.color == "Grey"
+        assert token2.get_visible_face().get("symbol") == "Research"
+        assert token2.get("color") == "Grey"
         token2.flip()
-        assert token2.get_visible_face().symbol == "Gold"
-        assert token2.color == "Grey"
-        token2.set_visible_face(lambda x: x.symbol == "Research")
-        assert token2.get_visible_face().symbol == "Research"
-        assert token2.color == "Grey"
+        assert token2.get_visible_face().get("symbol") == "Gold"
+        assert token2.get("color") == "Grey"
+        token2.set_visible_face(lambda x: x.get("symbol") == "Research")
+        assert token2.get_visible_face().get("symbol") == "Research"
+        assert token2.get("color") == "Grey"
