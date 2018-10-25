@@ -76,3 +76,33 @@ class TestZone(object):
         transform.clear()
         tree.apply(transform, lambda x: x.get("name").startswith("Player"))
         assert len(transform) == 2
+
+    def test_iter(self, tree):
+        count = 0
+        for child in tree:
+            count += 1
+        assert count == 2
+
+    def test_search_all_components(self, tree):
+        all = tree.search_all_components(lambda x: x.get("name").endswith("1"))
+        assert all[0].get("name") == "Player1"
+        assert all[1].get("name") == "Ressources1"
+        all = tree.search_all_components()
+        assert len(all) == 5
+
+    def test_search_all_components_predicate(self, tree):
+        all = tree.search_all_components("name == 'Player1'")
+        assert all[0].get("name") == "Player1"
+
+    def test_apply_predicate(self, tree):
+        class Transform():
+            def __init__(self):
+                self.names = set()
+            def __call__(self, component):
+                self.names.add(component.get("name"))
+        t = Transform()
+        tree.apply(t, "name in ['Player1', 'Player2']")
+        assert t.names == {'Player1', 'Player2'}
+        t = Transform()
+        tree.apply(t, "name.startswith('Play')")
+        assert t.names == {'Player1', 'Player2'}

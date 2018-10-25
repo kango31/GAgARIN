@@ -1,6 +1,8 @@
 #!encoding: utf-8
 
 import pickle
+import tempfile
+import os
 
 import pytest
 
@@ -95,4 +97,26 @@ class TestBoard(object):
         hand2.apply(algo.reset(), lambda x: isinstance(x, Card))
         assert algo.count == 0
 
-
+    def test_save_and_load(self, board):
+        stack1 = board.search_component(lambda x: x.get("name") == "Stack1")
+        assert not stack1.is_leaf()
+        token = stack1.search_component(lambda x: x.get("value") == 500)
+        stack1.remove(token)
+        sum = 0
+        for token in stack1:
+            sum += token.get("value")
+        assert sum == 16500
+        handle, tmpfile = tempfile.mkstemp()
+        with open(tmpfile, "wb") as fobj:
+            board.save_to_file(fobj)
+        with open(tmpfile, "rb") as fobj:
+            board2 = Board()
+            board2.load_from_file(fobj)
+        os.remove(tmpfile)
+        assert board2.get("name") == "Poker"
+        for name, total in [("Stack1", 16500), ("Stack2", 17000)]:
+            stack = board2.search_component(lambda x: x.get("name") == name)
+            sum = 0
+            for token in stack:
+                sum += token.get("value")
+            assert sum == total
