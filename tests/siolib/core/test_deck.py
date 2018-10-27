@@ -1,6 +1,7 @@
 import pytest
 
 from siolib.core.deck import Deck, Card
+from siolib.core.zone import Zone
 
 
 #@pytest.fixture(scope="module")
@@ -68,6 +69,12 @@ class TestDeck(object):
         assert len(cards) == 4
         cards = standard_poker.search(lambda x: x.get("colour") == u"\u2663", number=30)
         assert len(cards) == 8
+
+    def test_search_query(self, standard_poker):
+        cards = standard_poker.search("facevalue == 'A'")
+        assert len(cards) == 4
+        cards = standard_poker.search("colour == '\u2663'")
+        assert len(cards) == 12
 
     def test_deal(self, standard_poker):
         hands = standard_poker.deal(4, 2)

@@ -3,6 +3,7 @@ This module defines a class to interpret predicates from strings.
 """
 
 import re
+from .parser import DslLexer, DslParser
 
 
 class PropertyError(KeyError):
@@ -37,30 +38,8 @@ class Predicate():
         else:
             self._func = query
             self._query = None
-
-    def _build_dict(self, component):
-        """
-        Build a dictionnary for eval function based on query and given
-        component.
-
-        :param component: component to be passed to predicate
-        :type component: Component
-        :return: a dictionnary for the eval function
-        :rtype: dict
-        """
-        #Get all variables from string
-        #A variable is a regular Python variable name
-        #If such a name is within quotes (single or double) it is ignored
-        pattern = re.compile(r"""(?<!['"])\b\w+\b(?!['"])""")
-        variables = pattern.findall(self._query)
-        #Create dictionnary
-        dct = {}
-        for varb in variables:
-            try:
-                dct[varb] = component.get(varb)
-            except KeyError:
-                pass
-        return dct
+        self._lexer = DslLexer()
+        self._parser = DslParser()
 
     def __call__(self, component):
         """
@@ -78,6 +57,8 @@ class Predicate():
                 return False
         else:
             try:
-                return eval(self._query, self._build_dict(component))
+                self._parser.attach(component)
+                tokens = self._lexer.tokenize(self._query)
+                return self._parser.parse(tokens)
             except PropertyError:
                 return False

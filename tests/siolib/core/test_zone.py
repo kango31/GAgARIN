@@ -104,5 +104,5 @@ class TestZone(object):
         tree.apply(t, "name in ['Player1', 'Player2']")
         assert t.names == {'Player1', 'Player2'}
         t = Transform()
-        tree.apply(t, "name.startswith('Play')")
+        tree.apply(t, "name like 'Player*'")
         assert t.names == {'Player1', 'Player2'}
