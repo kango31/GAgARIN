@@ -61,6 +61,26 @@ class DslLexer(Lexer):
         self.index += 1
 
 
+class AbstractSyntaxTree:
+    def __init__(self, node, *args):
+        """
+        Constructor.
+
+        :param node: node type
+        :type node: str
+        """
+        self.node = node
+        self.args = args
+
+    def __str__(self):
+        """
+        Return a string reprensation of abstract syntax tree.
+
+        :rtype: str
+        """
+        return "({}, {})".format(self.node, ", ".join(map(str, self.args)))
+
+
 class DslParser(Parser):
     tokens = DslLexer.tokens
 
@@ -73,59 +93,58 @@ class DslParser(Parser):
         ('left', '*', '/'),
     )
 
-    def attach(self, component):
-        self.component = component
+    def error(self, token):
+        raise SyntaxError
 
     @_('condition')
     def statement(self, p):
-        return p[0]
+        return AbstractSyntaxTree("stmt", p[0])
 
     @_('NAME')
     def expr(self, p):
-        return self.component.get(p.NAME)
+        return AbstractSyntaxTree("get", p.NAME)
 
     @_('INT')
     def expr(self, p):
-        return p.INT
+        return AbstractSyntaxTree('int', p.INT)
 
     @_('FLOAT')
     def expr(self, p):
-        return p.FLOAT
+        return AbstractSyntaxTree('float', p.FLOAT)
 
     @_('STRING')
     def expr(self, p):
         #Get rid of quotes
-        return p.STRING[1:-1]
+        return AbstractSyntaxTree('str', p.STRING[1:-1])
 
     @_('arglist COMMA expr',
        'expr')
     def arglist(self, p):
         if len(p) == 1:
-            return [p[0]]
+            return AbstractSyntaxTree("arglist", [], p[0])
         else:
-            p[0].append(p[2])
-            return p[0]
+            return AbstractSyntaxTree("arglist", p[0], p[2])
 
     @_('"[" arglist "]"',
        '"{" arglist "}"')
     def sequence(self, p):
-        return p[1]
+        return AbstractSyntaxTree("sequence", p[1])
 
     @_('sequence')
     def expr(self, p):
-        return p.sequence
+        return AbstractSyntaxTree("sequence", p.sequence)
 
     @_('expr IN sequence')
     def condition(self, p):
-        return p.expr in p.sequence
+        return AbstractSyntaxTree("in", p.expr, p.sequence)
 
     @_('expr EQUALS expr')
     def condition(self, p):
-        return p.expr0 == p.expr1
+        return AbstractSyntaxTree("==", p.expr0, p.expr1)
 
     @_('expr DIFFERS expr')
     def condition(self, p):
-        return p.expr0 != p.expr1
+        return AbstractSyntaxTree("!=", p.expr0, p.expr1)
 
     @_('comp_expr GREATER_EQUAL expr',
        'comp_expr GREATER_THAN expr',
@@ -145,57 +164,159 @@ class DslParser(Parser):
         elif p[1] == "<":
             op = operator.lt
         try:
-            return op(p.expr0, p.expr1), p.expr1
-        except:
-            return p.comp_expr[0] and op(p.comp_expr[1], p.expr), p.expr
+            return AbstractSyntaxTree("comp_expr", op, p.expr0, p.expr1)
+        except KeyError:
+            return AbstractSyntaxTree("comp_expr", op, p.comp_expr, p.expr)
 
     @_('comp_expr')
     def condition(self, p):
-        return p.comp_expr[0]
+        return AbstractSyntaxTree("reduce_comp_expr", p.comp_expr)
 
     @_('condition OR condition')
     def condition(self, p):
-        return p.condition0 or p.condition1
+        return AbstractSyntaxTree("or", p.condition0, p.condition1)
 
     @_('condition AND condition')
     def condition(self, p):
-        return p.condition0 and p.condition1
+        return AbstractSyntaxTree("and", p.condition0, p.condition1)
 
     @_('"(" condition ")"')
     def condition(self, p):
-        return p.condition
+        return AbstractSyntaxTree("self", p.condition)
 
     @_('expr LIKE expr')
     def condition(self, p):
-        return fnmatch.fnmatch(str(p.expr0), str(p.expr1))
+        return AbstractSyntaxTree("match", p.expr0, p.expr1)
 
     @_('expr "+" expr')
     def expr(self, p):
-        return p.expr0 + p.expr1
+        return AbstractSyntaxTree("+", p.expr0, p.expr1)
 
     @_('expr "-" expr')
     def expr(self, p):
-        return p.expr0 - p.expr1
+        return AbstractSyntaxTree("-", p.expr0, p.expr1)
 
     @_('expr "*" expr')
     def expr(self, p):
-        return p.expr0 * p.expr1
+        return AbstractSyntaxTree("*", p.expr0, p.expr1)
 
     @_('expr "/" expr')
     def expr(self, p):
-        return p.expr0 / p.expr1
+        return AbstractSyntaxTree("/", p.expr0, p.expr1)
 
     @_('"(" expr ")"')
     def expr(self, p):
-        return p.expr
+        return AbstractSyntaxTree("self", p.expr)
+
+
+class DslInterpreter():
+    def __init__(self, component=None):
+        """
+        Constructor.
+
+        :param component: context component on which execution is made.
+        :type component: Component
+        """
+        self._component = component
+
+    def attach(self, component):
+        """
+        Attach component to intepreter to make interpretation context-dependent.
+
+        :param component: context for interpretation
+        :type component: Component
+        """
+        self._component = component
+
+    def interpret(self, code):
+        """
+        Interpret the provided code in the current component context.
+
+        :param code: code to be interpreted
+        :type code: str
+        :rtype: Python object
+        """
+        tokens = DslLexer().tokenize(code)
+        ast = DslParser().parse(tokens)
+        return self.execute(ast)
+
+    def execute(self, ast):
+        """
+        Execute the abstract syntax tree.
+
+        This method recursively interprets the abstract syntax tree to get a
+        result.
+
+        :param ast: abstract syntax tree generated by the parser
+        :type ast: AbstractSyntaxTree
+        :return: whatever is returned by execution
+        :rtype: Python object
+        """
+        if not isinstance(ast, AbstractSyntaxTree):
+            return ast
+
+        if ast.node == "stmt":
+            return self.execute(ast.args[0])
+        elif ast.node == "get":
+            return self._component.get(ast.args[0])
+        elif ast.node == "int":
+            return ast.args[0]
+        elif ast.node == "float":
+            return ast.args[0]
+        elif ast.node == "str":
+            return ast.args[0]
+        elif ast.node == "arglist":
+            args0 = self.execute(ast.args[0])
+            args1 = self.execute(ast.args[1])
+            args0.append(args1)
+            return args0
+        elif ast.node == "sequence":
+            return self.execute(ast.args[0])
+        elif ast.node == "in":
+            return self.execute(ast.args[0]) in self.execute(ast.args[1])
+        elif ast.node == "==":
+            return self.execute(ast.args[0]) == self.execute(ast.args[1])
+        elif ast.node == "!=":
+            return self.execute(ast.args[0]) != self.execute(ast.args[1])
+        elif ast.node == "comp_expr":
+                arg1 = self.execute(ast.args[1])
+                arg2 = self.execute(ast.args[2])
+                try:
+                    return ast.args[0](arg1, arg2), arg2
+                except TypeError:
+                    return arg1[0] and ast.args[0](arg1[1], arg2), arg2
+        elif ast.node == "reduce_comp_expr":
+                return self.execute(ast.args[0])[0]
+        elif ast.node == "and":
+            return self.execute(ast.args[0]) and self.execute(ast.args[1])
+        elif ast.node == "or":
+            return self.execute(ast.args[0]) or self.execute(ast.args[1])
+        elif ast.node == "self":
+            return self.execute(ast.args[0])
+        elif ast.node == "match":
+            arg0 = self.execute(ast.args[0])
+            arg1 = self.execute(ast.args[1])
+            return fnmatch.fnmatch(str(arg0), str(arg1))
+        elif ast.node == "+":
+            return self.execute(ast.args[0]) + self.execute(ast.args[1])
+        elif ast.node == "-":
+            return self.execute(ast.args[0]) - self.execute(ast.args[1])
+        elif ast.node == "*":
+            return self.execute(ast.args[0]) * self.execute(ast.args[1])
+        elif ast.node == "/":
+            return self.execute(ast.args[0]) / self.execute(ast.args[1])
+
 
 if __name__ == '__main__':
-    lexer = DslLexer()
-    parser = DslParser()
+    interpreter = DslInterpreter()
     while True:
         try:
-            text = input('calc > ')
+            text = input('dsl >>> ')
         except EOFError:
             break
-        if text:
-            parser.parse(lexer.tokenize(text))
+        else:
+            if text:
+                try:
+                    print(interpreter.interpret(text))
+                except SyntaxError:
+                    print("SyntaxError:", text)

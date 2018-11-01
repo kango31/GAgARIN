@@ -3,7 +3,7 @@ This module defines a class to interpret predicates from strings.
 """
 
 import re
-from .parser import DslLexer, DslParser
+from .parser import DslInterpreter
 
 
 class PropertyError(KeyError):
@@ -38,8 +38,7 @@ class Predicate():
         else:
             self._func = query
             self._query = None
-        self._lexer = DslLexer()
-        self._parser = DslParser()
+        self._interpreter = DslInterpreter()
 
     def __call__(self, component):
         """
@@ -57,8 +56,7 @@ class Predicate():
                 return False
         else:
             try:
-                self._parser.attach(component)
-                tokens = self._lexer.tokenize(self._query)
-                return self._parser.parse(tokens)
+                self._interpreter.attach(component)
+                return self._interpreter.interpret(self._query)
             except PropertyError:
                 return False

@@ -1,7 +1,7 @@
 import pytest
 
 from siolib.core.zone import Component
-from siolib.core.parser import DslLexer, DslParser
+from siolib.core.parser import DslInterpreter
 
 
 @pytest.fixture(scope="function")
@@ -9,147 +9,134 @@ def component():
     yield Component(name="toto", value=10)
 
 @pytest.fixture(scope="module")
-def lexer():
-    yield DslLexer()
-
-@pytest.fixture(scope="module")
-def parser():
-    yield DslParser()
+def interpreter():
+    yield DslInterpreter()
 
 
 class TestParser(object):
-    # def test_get_property(self, lexer, parser, component):
-    #     parser.attach(component)
-    #     result = parser.parse(lexer.tokenize("name"))
-    #     assert result == "toto"
-    #     result = parser.parse(lexer.tokenize("value"))
-    #     assert result == 10
-    #     result = parser.parse(lexer.tokenize("'hello world!'"))
-    #     assert result == "hello world!"
 
-
-    def test_equals(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("""name == 'toto'"""))
+    def test_equals(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("""name == 'toto'""")
         assert result
-        result = parser.parse(lexer.tokenize("""name == 'titi'"""))
+        result = interpreter.interpret("""name == 'titi'""")
         assert not result
-        result = parser.parse(lexer.tokenize("value == 11"))
+        result = interpreter.interpret("value == 11")
         assert not result
-        result = parser.parse(lexer.tokenize("value == 10"))
+        result = interpreter.interpret("value == 10")
         assert result
 
-    def test_or(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("name == 'tutu' or name == 'tata'"))
+    def test_or(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("name == 'tutu' or name == 'tata'")
         assert not result
-        result = parser.parse(lexer.tokenize("name == 'tutu' or value == 10"))
+        result = interpreter.interpret("name == 'tutu' or value == 10")
         assert result
-        result = parser.parse(lexer.tokenize("name == 'toto' or value == 11"))
+        result = interpreter.interpret("name == 'toto' or value == 11")
         assert result
 
-    def test_and(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("name == 'toto' and value == 11"))
+    def test_and(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("name == 'toto' and value == 11")
         assert not result
-        result = parser.parse(lexer.tokenize("name == 'tutu' and value == 10"))
+        result = interpreter.interpret("name == 'tutu' and value == 10")
         assert not result
-        result = parser.parse(lexer.tokenize("name == 'toto' and value == 10"))
+        result = interpreter.interpret("name == 'toto' and value == 10")
         assert result
 
-    def test_differs(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("name != 'toto'"))
+    def test_differs(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("name != 'toto'")
         assert not result
-        result = parser.parse(lexer.tokenize("name != 'tutu'"))
+        result = interpreter.interpret("name != 'tutu'")
         assert result
 
-    def test_greater(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("11 > 10 > 9"))
+    def test_greater(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("11 > 10 > 9")
         assert result
-        result = parser.parse(lexer.tokenize("value >= 10"))
+        result = interpreter.interpret("value >= 10")
         assert result
-        result = parser.parse(lexer.tokenize("value > 9"))
+        result = interpreter.interpret("value > 9")
         assert result
-        result = parser.parse(lexer.tokenize("value >= 11"))
+        result = interpreter.interpret("value >= 11")
         assert not result
-        result = parser.parse(lexer.tokenize("value > 10"))
+        result = interpreter.interpret("value > 10")
         assert not result
-        result = parser.parse(lexer.tokenize("value > -10.2"))
+        result = interpreter.interpret("value > -10.2")
         assert result
-        result = parser.parse(lexer.tokenize("value >= 9.99"))
+        result = interpreter.interpret("value >= 9.99")
         assert result
 
-    def test_lower(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("1 <= 2 <= 3"))
+    def test_lower(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("1 <= 2 <= 3")
         assert result
-        result = parser.parse(lexer.tokenize("1 < 4 < 5"))
+        result = interpreter.interpret("1 < 4 < 5")
         assert result
-        result = parser.parse(lexer.tokenize("1 < 2 <= 2"))
+        result = interpreter.interpret("1 < 2 <= 2")
         assert result
-        result = parser.parse(lexer.tokenize("value <= 10"))
+        result = interpreter.interpret("value <= 10")
         assert result
-        result = parser.parse(lexer.tokenize("value < 11"))
+        result = interpreter.interpret("value < 11")
         assert result
-        result = parser.parse(lexer.tokenize("value <= 9"))
+        result = interpreter.interpret("value <= 9")
         assert not result
-        result = parser.parse(lexer.tokenize("value < 10"))
+        result = interpreter.interpret("value < 10")
         assert not result
-        result = parser.parse(lexer.tokenize("8 < value <= 11"))
+        result = interpreter.interpret("8 < value <= 11")
         assert result
-        result = parser.parse(lexer.tokenize("12 > value <= 15"))
+        result = interpreter.interpret("12 > value <= 15")
         assert result
-        result = parser.parse(lexer.tokenize("12 > value <= 8"))
-        assert not result
-
-    def test_in(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("name in ['toto', 'tutu', 'tata']"))
-        assert result
-        result = parser.parse(lexer.tokenize("name in ['tutu', 'tata', -12.13]"))
-        assert not result
-        result = parser.parse(lexer.tokenize("name in [['tutu', 'tata'], -12.13]"))
-        assert not result
-        result = parser.parse(lexer.tokenize("name in [{'tutu', 'tata'}, 'toto']"))
-        assert result
-
-    def test_like(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("name like 'tot?'"))
-        assert result
-        result = parser.parse(lexer.tokenize("name like '*to'"))
-        assert result
-        result = parser.parse(lexer.tokenize("name like 'tata'"))
-        assert not result
-        result = parser.parse(lexer.tokenize("name like 12.34"))
+        result = interpreter.interpret("12 > value <= 8")
         assert not result
 
-    def test_parenthesis(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("(name == 'tutu' and value <= 10) or (name == 'toto' and value > 5)"))
+    def test_in(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("name in ['toto', 'tutu', 'tata']")
+        assert result
+        result = interpreter.interpret("name in ['tutu', 'tata', -12.13]")
+        assert not result
+        result = interpreter.interpret("name in [['tutu', 'tata'], -12.13]")
+        assert not result
+        result = interpreter.interpret("name in [{'tutu', 'tata'}, 'toto']")
         assert result
 
-    def test_maths(self, lexer, parser, component):
-        parser.attach(component)
-        result = parser.parse(lexer.tokenize("1 + 2 == 3"))
+    def test_like(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("name like 'tot?'")
         assert result
-        result = parser.parse(lexer.tokenize("2 * 3 == 6"))
+        result = interpreter.interpret("name like '*to'")
         assert result
-        result = parser.parse(lexer.tokenize("2 - 3 == -1"))
+        result = interpreter.interpret("name like 'tata'")
+        assert not result
+        result = interpreter.interpret("name like 12.34")
+        assert not result
+
+    def test_parenthesis(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("(name == 'tutu' and value <= 10) or (name == 'toto' and value > 5)")
         assert result
-        result = parser.parse(lexer.tokenize("1.0 / 2.0 == 0.5"))
+
+    def test_maths(self, interpreter, component):
+        interpreter.attach(component)
+        result = interpreter.interpret("1 + 2 == 3")
         assert result
-        result = parser.parse(lexer.tokenize("1 + 2 * 3 == 7"))
+        result = interpreter.interpret("2 * 3 == 6")
         assert result
-        result = parser.parse(lexer.tokenize("(1 + 2) * 3 == 9"))
+        result = interpreter.interpret("2 - 3 == -1")
         assert result
-        result = parser.parse(lexer.tokenize("1 + (2 * 3) == 7"))
+        result = interpreter.interpret("1.0 / 2.0 == 0.5")
         assert result
-        result = parser.parse(lexer.tokenize("(1 + 2) * (5 - 3) == 1 + (3 * 2) - 1"))
+        result = interpreter.interpret("1 + 2 * 3 == 7")
         assert result
-        result = parser.parse(lexer.tokenize("3 * (1 - (6 / 3 + 2)) == -9"))
+        result = interpreter.interpret("(1 + 2) * 3 == 9")
         assert result
-        result = parser.parse(lexer.tokenize("3 * 1 - 6 / 3 + 2 == 3"))
+        result = interpreter.interpret("1 + (2 * 3) == 7")
+        assert result
+        result = interpreter.interpret("(1 + 2) * (5 - 3) == 1 + (3 * 2) - 1")
+        assert result
+        result = interpreter.interpret("3 * (1 - (6 / 3 + 2)) == -9")
+        assert result
+        result = interpreter.interpret("3 * 1 - 6 / 3 + 2 == 3")
         assert result
