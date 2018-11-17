@@ -19,7 +19,7 @@ class Component():
     def is_visible(self):
         """
         State wether the component is visible.
-        If component is not visible, properties cannot be accessed.
+        If component is not visible, properties shall not be accessed.
 
         Derived class shall reimplement this method.
 
@@ -46,40 +46,45 @@ class Component():
         else:
             return None
 
-    # def __getattr__(self, name):
-    #     """
-    #     Access the properties of the card as if they were attributes.
+    def set(self, name, value):
+        """
+        Change value of specified property.
+        """
+        self._properties[name] = value
 
-    #     If component is not visible, this method returns None.
+    def __getattr__(self, name):
+        """
+        Access the properties of the component as if they were attributes.
 
-    #     This method is only called if no attribute with given name has been found in self.__dict__.
-    #     The first check is made with __getattribute__ special method.
+        If component is not visible, this method returns None.
 
-    #     :param name: property name to be retrieved
-    #     :type name: str
-    #     :rtype: object
-    #     """
-    #     if not self.is_visible():
-    #         return None
-    #     else:
-    #         try:
-    #             return self.__dict__["_properties"][name]
-    #         except KeyError:
-    #             raise AttributeError("Object has no {} property.")
+        This method is only called if no attribute with given name has been
+        found in self.__dict__. The first check is made with __getattribute__
+        special method.
 
-    # def __setattr__(self, name, value):
-    #     """
-    #     Prevent the modification of component properties.
+        :param name: property name to be retrieved
+        :type name: str
+        :rtype: object
+        """
+        try:
+            return self.__dict__["_properties"][name]
+        except KeyError:
+            raise AttributeError("'{}' object has no property '{}'".format(
+                    self.__class__.__name__, name))
 
-    #     :param name: name of attribute to be modified
-    #     :type name: str
-    #     :param value: value of attribute
-    #     :type value: Python object
-    #     """
-    #     if name in self._properties:
-    #         raise AttributeError("You cannot set the value of '{}'".format(name))
-    #     else:
-    #         super(Component, self).__setattr__(name, value)
+    def __setattr__(self, name, value):
+        """
+        Set the value of component properties.
+
+        :param name: name of property to be modified
+        :type name: str
+        :param value: value of property
+        :type value: Python object
+        """
+        if "_properties" in self.__dict__ and name in self._properties:
+            self._properties[name] = value
+        else:
+            super(Component, self).__setattr__(name, value)
 
     def is_leaf(self):
         """
@@ -105,7 +110,7 @@ class Zone(Component):
         :type name: str
         """
         super(Zone, self).__init__(**properties)
-        self._children = set()
+        self._children = [ ]
 
     def add(self, component):
         """
@@ -116,7 +121,7 @@ class Zone(Component):
         :return: current zone
         :rtype: Zone
         """
-        self._children.add(component)
+        self._children.append(component)
         return self
 
     def remove(self, component):
@@ -130,7 +135,7 @@ class Zone(Component):
         """
         try:
             self._children.remove(component)
-        except KeyError:
+        except ValueError:
             pass
         finally:
             return self
@@ -245,3 +250,11 @@ class Zone(Component):
         Turn zone object into iterables.
         """
         return iter(self._children)
+
+    def is_empty(self):
+        """
+        State whether zone is empty (it has no child).
+
+        :rtype: bool
+        """
+        return len(self._children) == 0

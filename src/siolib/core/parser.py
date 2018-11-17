@@ -308,6 +308,11 @@ class DslInterpreter():
 
 
 if __name__ == '__main__':
+    import readline
+
+    readline.parse_and_bind('tab: complete')
+    #readline.parse_and_bind('set editing-mode vi')
+
     interpreter = DslInterpreter()
     while True:
         try:

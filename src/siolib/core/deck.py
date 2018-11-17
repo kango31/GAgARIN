@@ -89,6 +89,17 @@ class Deck(Component):
                 out.append(card.set_face_up(face_up))
         return out
 
+    def draw_all(self, face_up=True):
+        """
+        Draw all cards from deck.
+
+        :param face_up: indicate if card is drawn face up.
+        :type face_up: bool
+        :return: drawn cards
+        :rtype: list
+        """
+        return self.draw(len(self), face_up)
+
     def search(self, filter, number=0):
         """
         Search and draw card from deck.
@@ -148,3 +159,19 @@ class Deck(Component):
                 elif len(p) != cards_per_pile:
                     stop = False
         return out
+
+    def __iter__(self):
+        """
+        Return an iterator over cards.
+
+        :rtype: iterator
+        """
+        return iter(self._cards)
+
+    def is_empty(self):
+        """
+        Stat whether deck is empty.
+
+        :rtype: bool
+        """
+        return len(self._cards) == 0

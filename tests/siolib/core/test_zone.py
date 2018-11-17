@@ -33,6 +33,20 @@ class TestComponent(object):
         assert component.get("value") == 10
         assert component.get("value", str) == "10"
 
+    def test_set(self, component):
+        component.set("value", 11)
+        assert component.get("value") == 11
+
+    def test_getattr(self, component):
+        assert component.name == "toto"
+        assert component.value == 10
+
+    def test_setattr(self, component):
+        component.name = "titi"
+        assert component.name == "titi"
+        component.value += 3
+        assert component.value == 13
+
 
 class TestZone(object):
     def test_add(self, zone):

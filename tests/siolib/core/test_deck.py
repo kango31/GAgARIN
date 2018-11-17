@@ -29,6 +29,7 @@ def standard_poker():
 
 class TestDeck(object):
     def test_add(self, empty_deck):
+        assert empty_deck.is_empty()
         empty_deck.add(Card(facevalue="Ace", colour="Spades"), position="random")
         assert len(empty_deck) == 1
         empty_deck.add(Card(facevalue="Ace", colour="Hearts"), position="top")
@@ -37,6 +38,8 @@ class TestDeck(object):
         assert len(empty_deck) == 3
         empty_deck.add(Card(facevalue="Ace", colour="Diamonds"))
         assert len(empty_deck) == 4
+        for card in empty_deck:
+            assert card.facevalue == "Ace"
 
     def test_len(self, standard_poker):
         assert len(standard_poker) == 52
@@ -50,6 +53,9 @@ class TestDeck(object):
         cards = standard_poker.draw(number=5)
         assert len(cards) == 5
         assert len(standard_poker) == 52 - 5
+        cards = standard_poker.draw_all()
+        assert standard_poker.is_empty()
+        assert len(cards) == 52 - 5
 
     def test_draw_too_many(self, standard_poker):
         cards = standard_poker.draw(number=60)
