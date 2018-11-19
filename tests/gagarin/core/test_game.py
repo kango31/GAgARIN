@@ -2,12 +2,12 @@
 
 import pytest
 
-from siolib.core.board import Board
-from siolib.core.zone import Zone
-from siolib.core.deck import Deck
-from siolib.core.card import Card
-from siolib.core.agent import Agent
-from siolib.core.game import Game
+from gagarin.core.board import Board
+from gagarin.core.zone import Zone
+from gagarin.core.deck import Deck
+from gagarin.core.card import Card
+from gagarin.core.agent import Agent
+from gagarin.core.game import Game
 
 
 @pytest.fixture(scope="module")

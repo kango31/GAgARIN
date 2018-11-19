@@ -6,11 +6,11 @@ import os
 
 import pytest
 
-from siolib.core.board import Board
-from siolib.core.zone import Zone
-from siolib.core.deck import Deck
-from siolib.core.card import Card
-from siolib.core.token import Token
+from gagarin.core.board import Board
+from gagarin.core.zone import Zone
+from gagarin.core.deck import Deck
+from gagarin.core.card import Card
+from gagarin.core.token import Token
 
 
 class MyCard(Card):

@@ -1,7 +1,7 @@
 import pytest
 
-from siolib.core.deck import Deck, Card
-from siolib.core.zone import Zone
+from gagarin.core.deck import Deck, Card
+from gagarin.core.zone import Zone
 
 
 #@pytest.fixture(scope="module")

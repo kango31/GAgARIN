@@ -1,7 +1,7 @@
 import pytest
 
-from siolib.core.zone import Component
-from siolib.core.parser import DslInterpreter
+from gagarin.core.zone import Component
+from gagarin.core.parser import DslInterpreter
 
 
 @pytest.fixture(scope="function")

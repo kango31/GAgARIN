@@ -1,6 +1,6 @@
 import pytest
 
-from siolib.core.card import Card
+from gagarin.core.card import Card
 
 
 @pytest.fixture(scope="function")
@@ -46,4 +46,3 @@ class TestCard(object):
     	assert card01.is_tapped()
     	assert card01.is_untapped() is False
     	card01.untap()
-

@@ -1,4 +1,7 @@
 #!encoding: utf-8
+"""
+Base class for game engine.
+"""
 
 class GameEnded(Exception):
     pass

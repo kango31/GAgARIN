@@ -1,6 +1,6 @@
 import pytest
 
-from siolib.core.token import Token, OneSidedToken, TwoSidedToken, Face
+from gagarin.core.token import Token, OneSidedToken, TwoSidedToken, Face
 
 
 @pytest.fixture(scope="function")

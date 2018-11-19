@@ -1,3 +1,5 @@
+#!encoding: utf-8
+
 """
 This module defines a class to interpret predicates from strings.
 """

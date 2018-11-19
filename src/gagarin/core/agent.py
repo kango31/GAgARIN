@@ -1,5 +1,9 @@
 #!encoding: utf-8
 
+"""
+Base classes for agents and actions.
+"""
+
 class Agent():
     def __init__(self, name):
         self._name = name

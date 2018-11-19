@@ -1,7 +1,7 @@
 import pytest
 
-from siolib.core.predicate import Predicate
-from siolib.core.zone import Component, PropertyError
+from gagarin.core.predicate import Predicate
+from gagarin.core.zone import Component, PropertyError
 
 
 @pytest.fixture(scope="function")

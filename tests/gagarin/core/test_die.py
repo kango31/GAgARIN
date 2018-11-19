@@ -1,6 +1,6 @@
 import pytest
 
-from siolib.core.die import Face, Die
+from gagarin.core.die import Face, Die
 
 
 @pytest.fixture(scope="function")

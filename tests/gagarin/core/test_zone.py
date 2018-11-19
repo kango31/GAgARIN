@@ -1,6 +1,6 @@
 import pytest
 
-from siolib.core.zone import Component, Zone
+from gagarin.core.zone import Component, Zone
 
 
 @pytest.fixture(scope="function")
